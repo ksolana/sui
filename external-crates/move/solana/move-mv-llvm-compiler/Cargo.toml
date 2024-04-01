@@ -90,3 +90,7 @@ harness = false
 [[test]]
 name = "dwarf-tests"
 harness = false
+
+[[test]]
+name = "failure-tests"
+harness = false
