@@ -27,7 +27,7 @@ module 0x42::m {
     #[expected_failure(out_of_gas, location=Self)]
     fun t4() {
         // fixme solana - bb without terminator
-        //loop {}
+        loop {}
     }
 
 }

@@ -28,7 +28,8 @@ use std::{
 };
 
 /// The default value bounding the amount of gas consumed in a test.
-const DEFAULT_EXECUTION_BOUND: u64 = 1_000_000;
+pub const DEFAULT_EXECUTION_BOUND: u64 = u64::MAX;
+pub const DEFAULT_EXECUTION_BOUND_SOLANA: u64 = u64::MAX;
 
 #[derive(Debug, Parser, Clone)]
 #[clap(author, version, about)]
@@ -195,6 +196,7 @@ impl UnitTestingConfig {
         native_function_table: Option<NativeFunctionTable>,
         cost_table: Option<CostTable>,
         writer: W,
+        gas_limit: u64,
     ) -> Result<(W, bool)> {
         let shared_writer = Mutex::new(writer);
 
@@ -213,13 +215,16 @@ impl UnitTestingConfig {
         }
 
         writeln!(shared_writer.lock().unwrap(), "Running Move unit tests")?;
-        let num_threads = if cfg!(feature = "solana-backend") {
-            1 // enforce single threaded execution for Solana, as llvm-sys is not re-entrant.
+        let (num_threads, cgas_limit) = if cfg!(feature = "solana-backend") {
+            (1, gas_limit) // enforce single threaded execution for Solana, as llvm-sys is not re-entrant.
         } else {
-            self.num_threads
+            (self.num_threads, self.gas_limit.unwrap())
         };
+
+        println!("Execution Bound gas_limit {0}", gas_limit);
+
         let mut test_runner = TestRunner::new(
-            self.gas_limit.unwrap_or(DEFAULT_EXECUTION_BOUND),
+            cgas_limit,
             num_threads,
             self.check_stackless_vm,
             self.verbose,

@@ -67,6 +67,15 @@ pub struct ExecuteResult {
     pub log: String,
 }
 
+pub fn compute_budget(execution_bound: u64) -> ComputeBudget {
+    ComputeBudget {
+        compute_unit_limit: execution_bound,
+        heap_size: Some(10000000),
+        max_call_depth: 8192,
+        ..ComputeBudget::default()
+    }
+}
+
 fn load_input(path: PathBuf) -> serde_json::Result<Input> {
     debug!("Reading input file {path:?}");
     let file = fs::File::open(path).unwrap();
@@ -314,17 +323,11 @@ fn execution_result(
     }
 }
 
-pub fn run_solana_vm(exe: String) -> (ExecuteResult, Duration) {
+pub fn run_solana_vm(exe: String, compute_budget: ComputeBudget) -> (ExecuteResult, Duration) {
     let exe = Path::new(&exe);
     let (instruction_accounts, transaction_accounts, instruction_data, program_id) =
         parse_input("input.json");
 
-    let compute_budget = ComputeBudget {
-        compute_unit_limit: i64::MAX as u64,
-        heap_size: Some(10000000),
-        max_call_depth: 8192,
-        ..ComputeBudget::default()
-    };
     let mut transaction_context = TransactionContext::new(
         transaction_accounts,
         Some(Rent::default()),

@@ -8,7 +8,7 @@ fun t0() {}
 #[expected_failure(arithmetic_error, location=Self)]
 fun t1() {
     // fixme solana - bb without terminator
-    //loop {}
+    loop {}
 }
 
 #[test]

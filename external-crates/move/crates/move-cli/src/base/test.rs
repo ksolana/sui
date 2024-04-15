@@ -241,7 +241,7 @@ pub fn run_move_unit_tests<W: Write + Send>(
     // Run the tests. If any of the tests fail, then we don't produce a coverage report, so cleanup
     // the trace files.
     if !unit_test_config
-        .run_and_report_unit_tests(test_plan, Some(natives), cost_table, writer)
+        .run_and_report_unit_tests(test_plan, Some(natives), cost_table, writer, UnitTestingConfig::DEFAULT_EXECUTION_BOUND)
         .unwrap()
         .1
     {
