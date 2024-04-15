@@ -36,7 +36,10 @@ Failures in 0x42::m:
 
 
 ┌── t4 ──────
-│ Test did not error as expected
+│ Failed to run a program on Solana VM.
+│ 
+│ 
+│ Err(ExceededMaxInstructions(3248))
 └──────────────────
 
 Test result: FAILED. Total tests: 5; passed: 0; failed: 5

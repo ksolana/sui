@@ -529,6 +529,8 @@ impl SharedTestingConfig {
         }
 
         let gen_options = move_to_solana::options::Options::default();
+        // TODO: Get the compute budget from the test file. anza-xyz/sui/issues/20
+        let compute_budget = move_to_solana::runner::compute_budget(self.execution_bound);
 
         for (function_name, test_info) in &test_plan.tests {
             let shared_object = match move_to_solana::run_for_unit_test(
@@ -555,7 +557,7 @@ impl SharedTestingConfig {
                 }
             };
 
-            let (result, duration) = move_to_solana::runner::run_solana_vm(shared_object);
+            let (result, duration) = move_to_solana::runner::run_solana_vm(shared_object, compute_budget);
             let test_run_info = || -> TestRunInfo {
                 TestRunInfo::new(function_name.to_string(), duration, result.compute_units)
             };
