@@ -34,6 +34,7 @@ pub struct TestCase {
     pub test_name: TestName,
     pub arguments: Vec<MoveValue>,
     pub expected_failure: Option<ExpectedFailure>,
+    pub gas_budget: Option<GasBudgetParams>,
 }
 
 #[derive(Debug, Clone)]
@@ -44,6 +45,13 @@ pub enum ExpectedFailure {
     ExpectedWithCodeDEPRECATED(u64),
     // expected failure, abort code with the module specified
     ExpectedWithError(ExpectedMoveError),
+}
+
+#[derive(Debug, Clone)]
+pub struct GasBudgetParams {
+    pub compute_budget:u64,
+    pub heap_size:u64,
+    pub max_call_depth:u64,
 }
 
 #[derive(Debug, Clone, Ord, PartialOrd, PartialEq, Eq)]

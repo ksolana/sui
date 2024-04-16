@@ -35,6 +35,8 @@ pub enum TestingAttribute {
     Test,
     // This test is expected to fail
     ExpectedFailure,
+    // Solana gas budget config
+    GasBudget,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -86,6 +88,7 @@ impl KnownAttribute {
             TestingAttribute::TEST => TestingAttribute::Test.into(),
             TestingAttribute::TEST_ONLY => TestingAttribute::TestOnly.into(),
             TestingAttribute::EXPECTED_FAILURE => TestingAttribute::ExpectedFailure.into(),
+            TestingAttribute::GAS_BUDGET => TestingAttribute::GasBudget.into(),
             VerificationAttribute::VERIFY_ONLY => VerificationAttribute::VerifyOnly.into(),
             NativeAttribute::BYTECODE_INSTRUCTION => NativeAttribute::BytecodeInstruction.into(),
             DiagnosticAttribute::ALLOW => DiagnosticAttribute::Allow.into(),
@@ -133,12 +136,17 @@ impl TestingAttribute {
     pub const MAJOR_STATUS_NAME: &'static str = "major_status";
     pub const MINOR_STATUS_NAME: &'static str = "minor_status";
     pub const ERROR_LOCATION: &'static str = "location";
+    pub const GAS_BUDGET: &'static str = "gas_budget";
+    pub const GAS_BUDGET_COMPUTE_UNIT_LIMIT: &'static str = "compute_unit_limit";
+    pub const GAS_BUDGET_HEAP_SIZE: &'static str = "heap_size";
+    pub const GAS_BUDGET_MAX_CALL_DEPTH: &'static str = "max_call_depth";
 
     pub const fn name(&self) -> &str {
         match self {
             Self::Test => Self::TEST,
             Self::TestOnly => Self::TEST_ONLY,
             Self::ExpectedFailure => Self::EXPECTED_FAILURE,
+            Self::GasBudget => Self::GAS_BUDGET,
         }
     }
 
@@ -158,10 +166,13 @@ impl TestingAttribute {
             Lazy::new(|| BTreeSet::from([AttributePosition::Function]));
         static EXPECTED_FAILURE_POSITIONS: Lazy<BTreeSet<AttributePosition>> =
             Lazy::new(|| BTreeSet::from([AttributePosition::Function]));
+        static GAS_BUDGET_POSITIONS: Lazy<BTreeSet<AttributePosition>> =
+            Lazy::new(|| BTreeSet::from([AttributePosition::Function]));
         match self {
             TestingAttribute::TestOnly => &TEST_ONLY_POSITIONS,
             TestingAttribute::Test => &TEST_POSITIONS,
             TestingAttribute::ExpectedFailure => &EXPECTED_FAILURE_POSITIONS,
+            TestingAttribute::GasBudget => &GAS_BUDGET_POSITIONS,
         }
     }
 
@@ -172,6 +183,13 @@ impl TestingAttribute {
             Self::VECTOR_ERROR_NAME,
             Self::OUT_OF_GAS_NAME,
             Self::MAJOR_STATUS_NAME,
+        ]
+    }
+    pub fn gas_budget_cases() -> &'static [&'static str] {
+        &[
+            Self::GAS_BUDGET_COMPUTE_UNIT_LIMIT,
+            Self::GAS_BUDGET_HEAP_SIZE,
+            Self::GAS_BUDGET_MAX_CALL_DEPTH,
         ]
     }
 }

@@ -24,6 +24,8 @@ use move_ir_types::location::Loc;
 use move_symbol_pool::Symbol;
 use std::collections::BTreeMap;
 
+use super::GasBudgetParams;
+
 struct Context<'env> {
     env: &'env mut CompilationEnv,
     constants: UniqueMap<ModuleIdent, UniqueMap<ConstantName, (Loc, Option<u64>)>>,
@@ -124,7 +126,7 @@ fn build_test_info<'func>(
     let test_attribute_opt = get_attrs(TestingAttribute::Test);
     let abort_attribute_opt = get_attrs(TestingAttribute::ExpectedFailure);
     let test_only_attribute_opt = get_attrs(TestingAttribute::TestOnly);
-
+    let gas_budget_attr = get_attrs(TestingAttribute::GasBudget);
     let test_attribute = match test_attribute_opt {
         None => {
             // expected failures cannot be annotated on non-#[test] functions
@@ -182,11 +184,13 @@ fn build_test_info<'func>(
         None => None,
         Some(abort_attribute) => parse_failure_attribute(context, abort_attribute),
     };
+    let gas_budget: Option<GasBudgetParams> = parse_gas_budget_attribute(context, gas_budget_attr);
 
     Some(TestCase {
         test_name: fn_name.to_string(),
         arguments,
         expected_failure,
+        gas_budget,
     })
 }
 
@@ -483,6 +487,83 @@ fn parse_failure_attribute(
                 sub_status_code,
                 move_binary_format::errors::Location::Module(location),
             )))
+        }
+    }
+}
+
+fn parse_gas_budget_attribute(context: &mut Context, gas_budget_attr: Option<&E::Attribute>) -> Option<GasBudgetParams> {
+    let mut assigned_gas_budget = GasBudgetParams {
+        compute_budget:1,
+        heap_size: 1,
+        max_call_depth: 1,
+    };
+    if gas_budget_attr.is_none(){
+        return Some(assigned_gas_budget);
+    }
+    let sp!(aloc, expected_attr) = match gas_budget_attr {
+        Some(gb) => gb,
+        None => {
+            unreachable!()
+        }
+    };
+
+    use E::Attribute_ as EA;
+    match expected_attr {
+        EA::Name(_) => {
+            return Some(assigned_gas_budget);
+        }
+        EA::Assigned(_, _) => {
+            return Some(assigned_gas_budget);
+        }
+        EA::Parameterized(sp!(_, nm), attrs) => {
+            assert!(
+                nm.as_str() == TestingAttribute::GasBudget.name(),
+                "ICE: expected failure attribute {nm} must have the right name"
+            );
+            let mut attrs: BTreeMap<String, (Loc, Attribute)> = attrs
+                .key_cloned_iter()
+                .map(|(sp!(kloc, k_), v)| (k_.to_string(), (kloc, v.clone())))
+                .collect();
+            let mut gas_budget_kind_vec = TestingAttribute::gas_budget_cases()
+                .iter()
+                .filter_map(|k| {
+                    let k = k.to_string();
+                    let attr_opt = attrs.remove(&k)?;
+                    Some((k, attr_opt))
+                })
+                .collect::<Vec<_>>();
+            if gas_budget_kind_vec.len() != 1 {
+                let invalid_attr_msg = format!(
+                    "Invalid #[gas_budget(...)] attribute, expected 1 failure kind but found {}. Expected one of: {}",
+                    gas_budget_kind_vec.len(),
+                    TestingAttribute::gas_budget_cases().to_vec().join(", ")
+                );
+                context
+                    .env
+                    .add_diag(diag!(Attributes::InvalidValue, (*aloc, invalid_attr_msg)));
+                return None;
+            }
+            let (gas_budget_kind, (attr_loc, attr)) = gas_budget_kind_vec.pop().unwrap();
+            match gas_budget_kind.as_str() {
+                TestingAttribute::GAS_BUDGET_COMPUTE_UNIT_LIMIT => {
+                    let (value_name_loc, attr_value) = get_assigned_attribute(
+                        context,
+                        TestingAttribute::GAS_BUDGET_COMPUTE_UNIT_LIMIT,
+                        attr_loc,
+                        attr,
+                    )?;
+                    let (_, _, u) =
+                        convert_constant_value_u64_constant_or_value(
+                            context,
+                            value_name_loc,
+                            &attr_value,
+                        )?;
+                    // TODO: Do some sanity check that u shouldn't be larger than a max value.
+                    assigned_gas_budget.compute_budget = u;
+                }
+                _ => unreachable!(),
+            };
+            return Some(assigned_gas_budget);
         }
     }
 }
