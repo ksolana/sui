@@ -280,7 +280,7 @@ Add these to settings.json file
     },
     "rust-analyzer.server.extraEnv": {
         "LLVM_SYS_170_PREFIX":"/path/to/platform-tools-1.41/move-dev",
-        "MOVE_NATIVE_PATH":"/path/to/move/language/move-native",
+        "MOVE_NATIVE":"/path/to/move/language/move-native",
         "PLATFORM_TOOLS_ROOT":"/path/to/platform-tools-1.41"
     },
 ```
