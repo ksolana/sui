@@ -13,7 +13,10 @@ Failures in 0x42::m:
 
 
 ┌── t1 ──────
-│ Test did not error as expected
+│ Failed to run a program on Solana VM.
+│ 
+│ 
+│ Err(ExceededMaxInstructions(3182))
 └──────────────────
 
 

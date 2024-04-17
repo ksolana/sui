@@ -2,15 +2,13 @@ address 0x1 {
 module M {
     #[test]
     fun timeout_fail() {
-        // fixme solana - bb without terminator
-        //while (true) {}
+        while (true) {}
     }
 
     #[test]
     #[expected_failure]
     fun timeout_fail_with_expected_failure() {
-        // fixme solana - bb without terminator
-        //while (true) {}
+        while (true) {}
     }
 
     #[test]
