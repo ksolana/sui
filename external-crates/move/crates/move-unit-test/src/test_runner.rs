@@ -660,6 +660,12 @@ impl SharedTestingConfig {
                     output.pass(function_name);
                     stats.test_success(test_run_info(), test_plan);
                 }
+                // Support tests with naked expected_failure, for example size_limit_fail in vector_tests.move
+                (Some(
+                    ExpectedFailure::Expected), move_to_solana::runner::ExitReason::Failure) => {
+                    output.pass(function_name);
+                    stats.test_success(test_run_info(), test_plan);
+                }
                 (_exp, _reason) => {
                     output.fail(function_name);
                     stats.test_failure(

@@ -3,7 +3,7 @@ Running Move unit tests
 [ FAIL    ] 0x1::M::no_timeout_fail
 [ PASS    ] 0x1::M::no_timeout_while_loop
 [ FAIL    ] 0x1::M::timeout_fail
-[ FAIL    ] 0x1::M::timeout_fail_with_expected_failure
+[ PASS    ] 0x1::M::timeout_fail_with_expected_failure
 
 Test failures:
 
@@ -21,12 +21,4 @@ Failures in 0x1::M:
 │ Err(ExceededMaxInstructions(110))
 └──────────────────
 
-
-┌── timeout_fail_with_expected_failure ──────
-│ Failed to run a program on Solana VM.
-│ 
-│ 
-│ Err(ExceededMaxInstructions(112))
-└──────────────────
-
-Test result: FAILED. Total tests: 5; passed: 2; failed: 3
+Test result: FAILED. Total tests: 5; passed: 3; failed: 2
