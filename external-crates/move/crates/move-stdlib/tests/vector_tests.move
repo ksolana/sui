@@ -6,6 +6,10 @@ module std::vector_tests {
     struct Droppable has drop {}
     struct NotDroppable {}
 
+    // defined in vm_status.rs
+    const MEMORY_LIMIT_EXCEEDED: u64 = 4028;
+    const UNKNOWN_STATUS: u64 = 18446744073709551615;
+
     #[test]
     fun test_singleton_contains() {
         assert!(*V::borrow(&V::singleton(0), 0) == 0, 0);
@@ -566,12 +570,12 @@ module std::vector_tests {
     }
 
     #[test]
-    #[expected_failure]
+    #[expected_failure(major_status = MEMORY_LIMIT_EXCEEDED, minor_status = UNKNOWN_STATUS, location=Self)]
     fun size_limit_fail() {
         let v = V::empty();
         let i = 0;
-        // Limit is currently 1024 * 1024
-        let max_len = 1024 * 1024 + 1;
+        // Solana default limit is 1024 * 2
+        let max_len = 1024 * 2 + 1;
 
         while (i < max_len) {
             V::push_back(&mut v, i);
