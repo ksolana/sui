@@ -53,6 +53,7 @@ module std::bit_vector_tests {
     }
 
     #[test]
+    #[gas_budget(compute_unit_limit=10000000)]
     fun test_set_bit_and_index_basic() {
         test_bitvector_set_unset_of_size(8)
     }
