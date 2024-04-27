@@ -532,9 +532,10 @@ fn parse_gas_budget_attribute(context: &mut Context, gas_budget_attr: Option<&E:
                     Some((k, attr_opt))
                 })
                 .collect::<Vec<_>>();
-            if gas_budget_kind_vec.len() != 1 {
+            assert!(attrs.is_empty(), "Invalid #[gas_budget(...)] attribute");
+            if gas_budget_kind_vec.len() > 3 {
                 let invalid_attr_msg = format!(
-                    "Invalid #[gas_budget(...)] attribute, expected 1 failure kind but found {}. Expected one of: {}",
+                    "Invalid #[gas_budget(...)] attribute, found {} attributes. Expected only: {}",
                     gas_budget_kind_vec.len(),
                     TestingAttribute::gas_budget_cases().to_vec().join(", ")
                 );
@@ -543,26 +544,27 @@ fn parse_gas_budget_attribute(context: &mut Context, gas_budget_attr: Option<&E:
                     .add_diag(diag!(Attributes::InvalidValue, (*aloc, invalid_attr_msg)));
                 return None;
             }
-            let (gas_budget_kind, (attr_loc, attr)) = gas_budget_kind_vec.pop().unwrap();
-            match gas_budget_kind.as_str() {
-                TestingAttribute::GAS_BUDGET_COMPUTE_UNIT_LIMIT => {
-                    let (value_name_loc, attr_value) = get_assigned_attribute(
-                        context,
-                        TestingAttribute::GAS_BUDGET_COMPUTE_UNIT_LIMIT,
-                        attr_loc,
-                        attr,
-                    )?;
-                    let (_, _, u) =
-                        convert_constant_value_u64_constant_or_value(
-                            context,
-                            value_name_loc,
-                            &attr_value,
-                        )?;
-                    // TODO: Do some sanity check that u shouldn't be larger than a max value.
-                    assigned_gas_budget.compute_budget = u;
-                }
-                _ => unreachable!(),
-            };
+            while !gas_budget_kind_vec.is_empty() {
+                let (gas_budget_kind, (attr_loc, attr)) = gas_budget_kind_vec.pop().unwrap();
+                match gas_budget_kind.as_str() {
+                    TestingAttribute::GAS_BUDGET_COMPUTE_UNIT_LIMIT => {
+                        let u = get_assigned_attribute_as_u64(context, TestingAttribute::GAS_BUDGET_COMPUTE_UNIT_LIMIT, attr_loc, attr)?;
+                        // TODO: Do some sanity check that u shouldn't be larger than a max value.
+                        assigned_gas_budget.compute_budget = u;
+                    }
+                    TestingAttribute::GAS_BUDGET_HEAP_SIZE => {
+                        let u = get_assigned_attribute_as_u64(context, TestingAttribute::GAS_BUDGET_HEAP_SIZE, attr_loc, attr)?;
+                        // TODO: Do some sanity check that u shouldn't be larger than a max value.
+                        assigned_gas_budget.heap_size = u;
+                    }
+                    TestingAttribute::GAS_BUDGET_MAX_CALL_DEPTH => {
+                        let u = get_assigned_attribute_as_u64(context, TestingAttribute::GAS_BUDGET_MAX_CALL_DEPTH, attr_loc, attr)?;
+                        // TODO: Do some sanity check that u shouldn't be larger than a max value.
+                        assigned_gas_budget.max_call_depth = u;
+                    }
+                    _ => return None,
+                };
+            }
             return Some(assigned_gas_budget);
         }
     }
@@ -620,6 +622,26 @@ fn get_assigned_attribute(
             None
         }
     }
+}
+
+fn get_assigned_attribute_as_u64(
+    context: &mut Context,
+    kind: &str,
+    attr_loc: Loc,
+    attr: Attribute,
+) -> Option<u64> {
+    let (value_name_loc, attr_value) = get_assigned_attribute(
+        context,
+        kind,
+        attr_loc,
+        attr,
+    )?;
+    let (_, _, u) = convert_constant_value_u64_constant_or_value(
+            context,
+            value_name_loc,
+            &attr_value,
+        )?;
+    return Some(u);
 }
 
 fn convert_location(context: &mut Context, attr_loc: Loc, attr: Attribute) -> Option<ModuleId> {
