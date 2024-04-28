@@ -6,9 +6,12 @@ module std::vector_tests {
     struct Droppable has drop {}
     struct NotDroppable {}
 
-    // defined in vm_status.rs
+    // defined in external-crates/move/crates/move-core-types/src/vm_status.rs
     const MEMORY_LIMIT_EXCEEDED: u64 = 4028;
     const UNKNOWN_STATUS: u64 = 18446744073709551615;
+
+    // defined in external-crates/move/solana/move-native/src/target_defs.rs
+    const PANIC_ABORT_CODE: u64 = 101;
 
     #[test]
     fun test_singleton_contains() {
@@ -94,9 +97,7 @@ module std::vector_tests {
     }
 
     #[test]
-    // TODO enable specific failure
-    //#[expected_failure(vector_error, minor_status = 1, location = Self)]
-    #[expected_failure]
+    #[expected_failure(abort_code = PANIC_ABORT_CODE, location = std::vector)]
     fun borrow_out_of_range() {
         let v = V::empty();
         V::push_back(&mut v, 7);
@@ -139,9 +140,7 @@ module std::vector_tests {
     }
 
     #[test]
-    // TODO enable specific failure
-    //#[expected_failure(vector_error, minor_status = 3, location = Self)]
-    #[expected_failure]
+    #[expected_failure(abort_code = PANIC_ABORT_CODE, location = std::vector)]
     fun destroy_non_empty() {
         let v = V::empty();
         V::push_back(&mut v, 42);
@@ -162,9 +161,7 @@ module std::vector_tests {
     }
 
     #[test]
-    // TODO enable specific failure
-    //#[expected_failure(vector_error, minor_status = 2, location = Self)]
-    #[expected_failure]
+    #[expected_failure(abort_code = PANIC_ABORT_CODE, location = std::vector)]
     fun pop_out_of_range() {
         let v = V::empty<u64>();
         V::pop_back(&mut v);
@@ -309,18 +306,14 @@ module std::vector_tests {
     }
 
     #[test]
-    // TODO enable specific failure
-    //#[expected_failure(vector_error, minor_status = 1, location = Self)]
-    #[expected_failure]
+    #[expected_failure(abort_code = PANIC_ABORT_CODE, location = Self)]
     fun swap_empty() {
         let v = V::empty<u64>();
         V::swap(&mut v, 0, 0);
     }
 
     #[test]
-    // TODO enable specific failure
-    //#[expected_failure(vector_error, minor_status = 1, location = Self)]
-    #[expected_failure]
+    #[expected_failure(abort_code = PANIC_ABORT_CODE, location = Self)]
     fun swap_out_of_range() {
         let v = V::empty<u64>();
 
@@ -391,9 +384,7 @@ module std::vector_tests {
     }
 
     #[test]
-    // TODO enable specific failure
-    //#[expected_failure(vector_error, minor_status = 1, location = std::vector)]
-    #[expected_failure]
+    #[expected_failure(abort_code = PANIC_ABORT_CODE, location = std::vector)]
     fun swap_remove_out_of_range() {
         let v = V::empty();
         V::push_back(&mut v, 0);
