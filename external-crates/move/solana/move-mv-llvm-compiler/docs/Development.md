@@ -202,6 +202,43 @@ To debug in VS Code add this config:
     "stopOnEntry": false
  }
 
+ - To print out the compilation command line spawned by tests set env: RUST_LOG=launch_compiler.
+   For example:
+   ```
+  > RUST_LOG=launch_compiler cargo test --manifest-path external-crates/move/Cargo.toml -p move-mv-llvm-compiler --test stdlib-with-p-option-tests; echo EOT
+    Compiling move-mv-llvm-compiler v0.1.0 (/home/sol/work/git/sui-solana-032024/external-crates/move/solana/move-mv-llvm-compiler)
+    Finished test [unoptimized + debuginfo] target(s) in 1.22s
+     Running tests/stdlib-with-p-option-tests.rs (external-crates/move/target/debug/deps/stdlib_with_p_option_tests-ffb0765866d3fdd7)
+
+    running 1 test
+    Finished dev [unoptimized + debuginfo] target(s) in 0.29s
+    Finished dev [unoptimized + debuginfo] target(s) in 0.18s
+    [2024-05-11T01:06:54Z DEBUG stdlib_with_p_option_tests::test_common] Command {
+        program: "/home/sol/work/git/sui-solana-032024/external-crates/move/target/debug/move-mv-llvm-compiler",
+        args: [
+            "/home/sol/work/git/sui-solana-032024/external-crates/move/target/debug/move-mv-llvm-compiler",
+            "-c",
+            "/home/sol/work/git/sui-solana-032024/external-crates/move/solana/move-mv-llvm-compiler/tests/stdlib-with-p-option-tests/hash_tests.move",
+            "--extension",
+            "ll.actual",
+            "-p",
+            "/home/sol/work/git/sui-solana-032024/external-crates/move/crates/move-stdlib",
+            "--test",
+            "--dev",
+            "-S",
+            "-o",
+            "/home/sol/work/git/sui-solana-032024/external-crates/move/solana/move-mv-llvm-compiler/tests/stdlib-with-p-option-tests/hash_tests-build",
+        ],
+        create_pidfd: false,
+    }
+    test run_test::hash_tests.move ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s
+
+    EOT
+
+   ```
+
 ### Protip
 
 ----

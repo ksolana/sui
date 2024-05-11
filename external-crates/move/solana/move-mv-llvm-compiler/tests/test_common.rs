@@ -417,6 +417,8 @@ pub fn run_move_to_llvm_build(
     fs::create_dir_all(test_plan.build_dir.to_str().unwrap()).expect("Directory does not exist");
     cmd.args(["-o", test_plan.build_dir.to_str().expect("utf-8")]);
 
+    debug!(target: "launch_compiler", "{:#?}", &cmd);
+
     let output = cmd.output()?;
 
     if !output.status.success() {

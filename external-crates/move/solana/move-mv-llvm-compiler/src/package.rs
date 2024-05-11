@@ -143,9 +143,13 @@ pub fn resolve_dependency(
         lock_file: None, // Option<PathBuf>
         fetch_deps_only: true,
         skip_fetch_latest_git_deps: true,
-        default_flavor: None, // todo sui
-        default_edition: None, // todo sui
-        deps_as_root: false, // todo sui
+        // Note: Sui introduced compiler_version and edition/flavor of tool chain,
+        // they may be set as
+        // "move build --default-move-edition --default-move-flavor".
+        // Since Solana uses own compiler and tools, ignore them.
+        default_flavor: None, // in Sui can be Some(Flavor::GlobalStorage) or set in.
+        default_edition: None,
+        deps_as_root: false, // deps_as_root is reserved, not used
         silence_warnings: false,
         warnings_are_errors: false,
         additional_named_addresses: BTreeMap::new(),
