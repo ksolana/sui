@@ -185,6 +185,7 @@ Install [CodeLLDB plugin](https://marketplace.visualstudio.com/items?itemName=va
 - lldb with gdbserver
 
 To debug in VS Code add this config:
+```
  {
     "type": "lldb",
     "request": "launch",
@@ -201,11 +202,15 @@ To debug in VS Code add this config:
     "cwd": "something like /home/sol/work/git/move/language/tools/move-mv-llvm-compiler",
     "stopOnEntry": false
  }
+ ```
 
- - To print out the compilation command line spawned by tests set env: RUST_LOG=launch_compiler.
-   For example:
+ - To print out the compilation command line spawned by tests set env: `RUST_LOG=launch_compiler`.
+   For example, this command
+
+  `RUST_LOG=launch_compiler cargo test --manifest-path external-crates/move/Cargo.toml -p move-mv-llvm-compiler --test stdlib-with-p-option-tests; echo EOT`
+
+   will print out something like this:
    ```
-  > RUST_LOG=launch_compiler cargo test --manifest-path external-crates/move/Cargo.toml -p move-mv-llvm-compiler --test stdlib-with-p-option-tests; echo EOT
     Compiling move-mv-llvm-compiler v0.1.0 (/home/sol/work/git/sui-solana-032024/external-crates/move/solana/move-mv-llvm-compiler)
     Finished test [unoptimized + debuginfo] target(s) in 1.22s
      Running tests/stdlib-with-p-option-tests.rs (external-crates/move/target/debug/deps/stdlib_with_p_option_tests-ffb0765866d3fdd7)
