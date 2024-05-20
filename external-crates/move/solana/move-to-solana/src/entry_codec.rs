@@ -38,6 +38,8 @@ fn encode_instruction_data(
 ) -> Result<Vec<u8>> {
     let mut insn_data: Vec<u8> = vec![];
 
+    // Encode the data in borsch or bincode format.
+
     // First encode the entry function name
     {
         let entry_fn_len: u64 = entry_fn_name.len() as u64;
@@ -45,6 +47,18 @@ fn encode_instruction_data(
         insn_data.extend(entry_fn_name.as_bytes());
     }
 
+    // encode remaining args of the function
+    if !_args.is_empty() {
+        let arglen = _args.len() as u64;
+        insn_data.extend(&arglen.to_le_bytes());
+        for a in _args {
+            // serialize each move value.
+            // TODO: sui-graphql-rpc/src/types/move_value.rs has more
+            // advanced serialization methods to convert to json etc.
+            insn_data.extend(a.simple_serialize().ok_or(None));
+        }
+
+    }
     // todo
 
     Ok(insn_data)
