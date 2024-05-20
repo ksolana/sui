@@ -153,7 +153,8 @@ impl<'up> GlobalContext<'up> {
         let modname = m_env.llvm_module_name();
         debug!(target: "dwarf", "Create DWARF for module {:#?} with source {:#?}", modname, source);
         // DIBuilder does not depend on Builder and can be created first
-        let llvm_di_builder = llvm_cx.create_di_builder(self, llmod, source, options.debug);
+        // Note: if options.bytecode_file_path.is_some() we compile from binary and debug information is already lost, then do not try to retrieve it.
+        let llvm_di_builder = llvm_cx.create_di_builder(self, llmod, source, options.debug && options.bytecode_file_path.is_none());
         let llvm_builder = llvm_cx.create_builder();
         let rtty_cx = RttyContext::new(self.env, &self.llvm_cx, llmod);
         ModuleContext {
@@ -2007,8 +2008,21 @@ pub fn write_object_file(
     llmod: llvm::Module,
     llmachine: &llvm::TargetMachine,
     outpath: &str,
+    options: &Options,
 ) -> anyhow::Result<()> {
+    let tm = llmachine.get_target_machine_description();
+    debug!("TM target: {tm}");
+    let tm_string = llmachine.get_target_machine_string();
+    debug!("TM features: {tm_string}");
+    debug_pass_builder_options();
     llmod.verify();
-    llmachine.emit_to_obj_file(&llmod, outpath)?;
+    llmachine.emit_to_obj_file(&llmod, outpath, Some(options))?;
     Ok(())
+}
+
+fn debug_pass_builder_options() {
+    unsafe  {
+        let options: *mut llvm_sys::transforms::pass_builder::LLVMOpaquePassBuilderOptions = llvm_sys::transforms::pass_builder::LLVMCreatePassBuilderOptions();
+        llvm_sys::transforms::pass_builder::LLVMPassBuilderOptionsSetDebugLogging(options, 1);
+    }
 }

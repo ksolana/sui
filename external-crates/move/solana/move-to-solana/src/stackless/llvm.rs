@@ -15,11 +15,12 @@
 
 use libc::abort;
 use llvm_sys::{core::*, prelude::*, target::*, target_machine::*, LLVMOpcode, LLVMUnnamedAddr};
-use log::{debug, warn};
+use log::{debug, error};
 use move_core_types::u256;
 use num_traits::{PrimInt, ToPrimitive};
 
 use crate::cstr::SafeCStr;
+use crate::Options;
 
 use std::{
     ffi::{CStr, CString},
@@ -1530,7 +1531,7 @@ impl Target {
             "default" => LLVMCodeGenOptLevel::LLVMCodeGenLevelDefault,
             "aggressive" => LLVMCodeGenOptLevel::LLVMCodeGenLevelAggressive,
             _ => {
-                warn!("Invalid opt level: {opt_level}, defaulting to \'none\'");
+                error!("Invalid opt level: {:#?}, must be one of  \'none\', \'less\', \'default\', \'aggressive\'", opt_level);
                 LLVMCodeGenOptLevel::LLVMCodeGenLevelNone
             }
         }
@@ -1543,6 +1544,7 @@ impl Target {
         opt_level: &str,
     ) -> TargetMachine {
         unsafe {
+            // TODO: do we need LLVMRelocPIC, maybe try LLVMRelocStatic?
             let reloc = LLVMRelocMode::LLVMRelocPIC;
             let code_model = LLVMCodeModel::LLVMCodeModelDefault;
 
@@ -1572,11 +1574,12 @@ impl Drop for TargetMachine {
 }
 
 impl TargetMachine {
-    pub fn emit_to_obj_file(&self, module: &Module, filename: &str) -> anyhow::Result<()> {
+    pub fn emit_to_obj_file(&self, module: &Module, filename: &str, options: Option<&Options>) -> anyhow::Result<()> {
         unsafe {
             // nb: llvm-sys seemingly-incorrectly wants
             // a mutable c-string for the filename.
             let filename = CString::new(filename.to_string()).expect("interior nul byte");
+            let filename_assembler = CString::new(format!("{}.asm", filename.to_str().unwrap())).unwrap();
             let mut filename = filename.into_bytes_with_nul();
             let filename: *mut u8 = filename.as_mut_ptr();
             let filename = filename as *mut libc::c_char;
@@ -1590,6 +1593,27 @@ impl TargetMachine {
                 error,
             );
 
+            if let Some(opt) = options {
+                if opt.print_assembly {
+                    let mut filename_asm = filename_assembler.clone().into_bytes_with_nul();
+                    let filename_asm: *mut u8 = filename_asm.as_mut_ptr();
+                    let filename_asm = filename_asm as *mut libc::c_char;
+
+                    let error_asm: &mut *mut libc::c_char = &mut ptr::null_mut();
+                    let result_asm = LLVMTargetMachineEmitToFile(
+                        self.0,
+                        module.0,
+                        filename_asm,
+                        LLVMCodeGenFileType::LLVMAssemblyFile,
+                        error_asm,
+                    );
+                    if result_asm == 0 {
+                        assert!((*error_asm).is_null());
+                        println!("Module {:#?} assembly printed to {}", module.get_module_id(), filename_assembler.to_string_lossy().into_owned());
+                    }
+                }
+            }
+
             if result == 0 {
                 assert!((*error).is_null());
                 Ok(())
@@ -1599,6 +1623,27 @@ impl TargetMachine {
                 LLVMDisposeMessage(*error);
                 anyhow::bail!("{rust_error}");
             }
+        }
+    }
+
+    pub fn get_target_machine_string(&self) -> String {
+        unsafe {
+            let ll = LLVMGetTargetMachineFeatureString(self.0);
+            let c_string = CString::from_raw(ll);
+            c_string.to_string_lossy().into_owned()
+        }
+    }
+    pub fn get_target_machine_description(&self) -> String {
+        unsafe {
+            let tg = LLVMGetTargetMachineTarget(self.0);
+            let ll = LLVMGetTargetDescription(tg);
+            let c_string = CStr::from_ptr(ll);
+            c_string.to_string_lossy().into_owned()
+        }
+    }
+    pub fn set_target_machine_asm_verbosity(&self) {
+        unsafe {
+            LLVMSetTargetMachineAsmVerbosity(self.0, 1);
         }
     }
 }

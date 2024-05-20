@@ -167,6 +167,8 @@ fn get_sbf_tools() -> anyhow::Result<PlatformTools> {
         anyhow::bail!("no lld bin at {}", sbf_tools.lld.display());
     }
 
+    debug!("sbf_tools: clang {:#?} lld {:#?}", sbf_tools.clang, sbf_tools.lld);
+
     Ok(sbf_tools)
 }
 
@@ -295,6 +297,7 @@ fn link_object_files(
     cmd.arg(&runtime.archive_file);
 
     let output = cmd.output()?;
+    debug!("Running {cmd:?}");
     if !output.status.success() {
         anyhow::bail!(
             "linking with lld failed. stderr:\n\n{}",

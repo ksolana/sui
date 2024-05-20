@@ -215,7 +215,9 @@ fn main() -> anyhow::Result<()> {
             dot_file_path: args.dot_file_path.clone(),
             test_signers: args.test_signers.clone(),
             debug: args.debug,
+            bytecode_file_path: args.bytecode_file_path,
             opt_level: args.opt_level.clone(),
+            print_assembly: args.print_assembly,
             ..MoveToSolanaOptions::default()
         };
 
@@ -228,6 +230,7 @@ fn main() -> anyhow::Result<()> {
             tgt_platform.llvm_features(),
             &options.opt_level,
         );
+        llmachine.set_target_machine_asm_verbosity();
         let global_cx = GlobalContext::new(&global_env, tgt_platform, &llmachine);
 
         // Deserialization is only for one (the last) module.
@@ -308,7 +311,7 @@ fn main() -> anyhow::Result<()> {
                     llvm_write_to_file(entrypoint_generator.llvm_module.0, true, &path.to_string_lossy().to_string())?;
                 }
             } else {
-                write_object_file(llmod, &llmachine, &output_file_path)?;
+                write_object_file(llmod, &llmachine, &output_file_path, &options)?;
                 if entrypoint_generator.has_entries() {
                     let path = Path::new(&output_file_path);
                     entrypoint_generator.write_object_file(path.to_path_buf().parent().unwrap())?;

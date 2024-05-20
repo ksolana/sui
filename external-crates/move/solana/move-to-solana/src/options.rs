@@ -57,6 +57,10 @@ pub struct Options {
     #[clap(short = 'b', long = "bytecode")]
     pub bytecode_file_path: Option<String>,
 
+    /// In combination with -b prints assembly to .asm file
+    #[clap(long = "print-assembly")]
+    pub print_assembly: bool,
+
     /// Compile to object file.
     #[clap(short)]
     pub compile: bool,

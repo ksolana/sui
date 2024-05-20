@@ -585,6 +585,9 @@ pub fn compile_all_bytecode(
             cmd.arg(&dep.bytecode);
         }
 
+        // TODO: try to add aggressive optimization to cmd, but this may require to update the expected output
+        // "--opt aggressive"
+
         debug!("Running {cmd:?}");
         if !std::env::args().any(|arg| arg == "--nocapture") {
             let output = cmd.output().context("run move-mv-llvm-compiler failed")?;

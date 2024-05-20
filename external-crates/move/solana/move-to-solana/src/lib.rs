@@ -444,7 +444,7 @@ fn compile(global_env: &GlobalEnv, options: &Options) -> anyhow::Result<()> {
                 output_file = options.output.clone();
             }
             debug!("Output generated code to {}", output_file);
-            write_object_file(llmod, &llmachine, &output_file)?;
+            write_object_file(llmod, &llmachine, &output_file, options)?;
         }
         if !(options.compile || options.llvm_ir) {
             objects.push(Path::new(&output_file).to_path_buf());

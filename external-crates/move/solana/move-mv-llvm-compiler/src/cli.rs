@@ -31,6 +31,10 @@ pub struct Args {
     #[clap(short = 'b', long = "bytecode")]
     pub bytecode_file_path: Option<String>,
 
+    /// In combination with -b prints assembly to .asm file
+    #[clap(long = "print-assembly")]
+    pub print_assembly: bool,
+
     /// Path to the move source direcory (containing Move.toml)
     #[clap(short = 'p', long = "package")]
     pub move_package_path: Option<String>,
