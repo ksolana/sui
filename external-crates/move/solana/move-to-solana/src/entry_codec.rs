@@ -55,9 +55,12 @@ fn encode_instruction_data(
             // serialize each move value.
             // TODO: sui-graphql-rpc/src/types/move_value.rs has more
             // advanced serialization methods to convert to json etc.
-            insn_data.extend(a.simple_serialize().ok_or(None));
+            let argstring = match a.simple_serialize() {
+                Some(bytes) => bytes,
+                None => panic!("Error"),
+            };
+            insn_data.extend(std::str::from_utf8(&argstring)?.as_bytes());
         }
-
     }
     // todo
 
