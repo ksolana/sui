@@ -34,7 +34,7 @@ pub fn generate_move_call_message(
 
 fn encode_instruction_data(
     entry_fn_name: &str,
-    _args: &[MoveValue],
+    args: &[MoveValue],
 ) -> Result<Vec<u8>> {
     let mut insn_data: Vec<u8> = vec![];
 
@@ -48,10 +48,10 @@ fn encode_instruction_data(
     }
 
     // encode remaining args of the function
-    if !_args.is_empty() {
-        let arglen = _args.len() as u64;
+    if !args.is_empty() {
+        let arglen = args.len() as u64;
         insn_data.extend(&arglen.to_le_bytes());
-        for a in _args {
+        for a in args {
             // serialize each move value.
             // TODO: sui-graphql-rpc/src/types/move_value.rs has more
             // advanced serialization methods to convert to json etc.

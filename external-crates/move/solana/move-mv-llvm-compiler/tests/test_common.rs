@@ -146,8 +146,8 @@ pub enum TestDirective {
     Xfail(String), // The test is expected to fail with the `String` message. It is an error if test passes.
     Abort(u64),    // The test should abort.
     Log(String),   // Test should pass.
-    Input(Input),
-    Input2(Input2),
+    Input(Input),  // Input file with program_id, accounts, instruction_data
+    Input2(Input2),// Input file with program_id, entry_fn. // TODO: Single input.json should be used.
     UseStdlib, // Build and link the move stdlib as bytecode
 }
 
@@ -170,6 +170,7 @@ pub struct Input {
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 pub struct Input2 {
+    // FIXME: We should have single input.json loader with appropriate discriminators.
     pub program_id: String,
     pub entry_fn: String,
 }
